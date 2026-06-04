@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-header"><h2 class="mb-0"><i class="bi bi-speedometer2"></i> Tableau de Bord</h2></div>
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="card card-kpi shadow-sm"><div class="card-body">
+    <div class="d-flex justify-content-between align-items-center">
+      <div><p class="text-muted small mb-1">CA Aujourd'hui</p><h3 class="fw-bold text-primary mb-0">{{ raw.total_today|floatformat:0 }}<small class="fs-6 ms-1">FCFA</small></h3></div>
+      <i class="bi bi-cash-stack fs-1 text-primary opacity-25"></i>
+    </div></div></div></div>
+  <div class="col-md-3"><div class="card card-kpi shadow-sm"><div class="card-body">
+    <div class="d-flex justify-content-between align-items-center">
+      <div><p class="text-muted small mb-1">Commandes aujourd'hui</p><h3 class="fw-bold text-success mb-0">{{ raw.orders_count }}</h3></div>
+      <i class="bi bi-receipt fs-1 text-success opacity-25"></i>
+    </div></div></div></div>
+  <div class="col-md-3"><div class="card card-kpi shadow-sm"><div class="card-body">
+    <div class="d-flex justify-content-between align-items-center">
+      <div><p class="text-muted small mb-1">En attente</p><h3 class="fw-bold text-warning mb-0">{{ raw.pending_count }}</h3></div>
+      <i class="bi bi-clock-history fs-1 text-warning opacity-25"></i>
+    </div></div></div></div>
+  <div class="col-md-3"><div class="card card-kpi shadow-sm"><div class="card-body">
+    <div class="d-flex justify-content-between align-items-center">
+      <div><p class="text-muted small mb-1">Articles stock</p><h3 class="fw-bold text-info mb-0">{{ raw.stock_alerts }}</h3></div>
+      <i class="bi bi-boxes fs-1 text-info opacity-25"></i>
+    </div></div></div></div>
+</div>
+<div class="row g-4">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold" style="background:#1A5276;color:white;"><i class="bi bi-bar-chart"></i> Chiffre d'Affaires Mensuel (FCFA)</div>
+      <div class="card-body"><canvas id="revenueChart" height="90"></canvas></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-bold" style="background:#1E8449;color:white;"><i class="bi bi-trophy"></i> Plats les Plus Vendus</div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for item in raw.best_sellers %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>{{ item.product__name }}</span>
+            <span class="badge rounded-pill" style="background:#1A5276;">{{ item.total }} vendus</span>
+          </li>
+          {% empty %}<li class="list-group-item text-muted text-center py-4">Aucune donnee</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="card shadow-sm mt-4">
+  <div class="card-header fw-bold" style="background:#1A5276;color:white;"><i class="bi bi-list-check"></i> Commandes Recentes</div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead style="background:#F0F3F4;"><tr><th>#</th><th>Heure</th><th>Type</th><th>Serveur</th><th>Total</th><th>Statut</th><th></th></tr></thead>
+      <tbody>
+      {% for o in recent_orders %}
+      <tr>
+        <td><strong>#{{ o.id }}</strong></td>
+        <td class="small text-muted">{{ o.date|date:"H:i" }}</td>
+        <td><span class="badge bg-secondary">{{ o.get_order_type_display }}</span></td>
+        <td>{{ o.waiter|default:"—" }}</td>
+        <td class="fw-bold" style="color:#1A5276;">{{ o.total_amount|floatformat:0 }} FCFA</td>
+        <td><span class="badge {% if o.status == 'pending' %}bg-warning text-dark{% elif o.status == 'preparing' %}bg-info{% elif o.status == 'ready' %}bg-success{% elif o.status == 'paid' %}bg-primary{% else %}bg-danger{% endif %}">{{ o.get_status_display }}</span></td>
+        <td><a href="{% url 'order_detail' o.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a></td>
+      </tr>
+      {% empty %}<tr><td colspan="7" class="text-center text-muted py-3">Aucune commande aujourd'hui.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const rmsData = {{ data|safe }};
+const months = ['Jan','Fev','Mar','Avr','Mai','Jun','Jul','Aou','Sep','Oct','Nov','Dec'];
+new Chart(document.getElementById('revenueChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: rmsData.monthly_revenue.map(d => months[(d.date__month||1)-1]),
+    datasets:[{label:"CA Mensuel (FCFA)",data:rmsData.monthly_revenue.map(d=>d.total||0),
+               backgroundColor:'rgba(26,82,118,0.8)',borderColor:'#1A5276',borderWidth:2,borderRadius:6}]
+  },
+  options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v.toLocaleString()+' F'}}}}
+});
+</script>
+{% endblock %}

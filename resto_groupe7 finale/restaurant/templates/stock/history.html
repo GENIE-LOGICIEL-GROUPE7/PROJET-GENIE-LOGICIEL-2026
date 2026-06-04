@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Historique Stock{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+  <h3 class="mb-0"><i class="bi bi-clock-history"></i> Historique — {{ stock.item_name }}</h3>
+  <a href="{% url 'stock_list' %}" class="btn btn-outline-light"><i class="bi bi-arrow-left"></i> Retour</a>
+</div>
+<div class="card shadow-sm"><div class="card-body p-0">
+<table class="table table-hover mb-0">
+  <thead style="background:#1A5276;color:white;"><tr><th>Date et Heure</th><th>Ancienne Qte</th><th>Nouvelle Qte</th><th>Variation</th></tr></thead>
+  <tbody>
+  {% for log in logs %}
+  <tr>
+    <td class="small text-muted">{{ log.updated_at|date:"d/m/Y H:i:s" }}</td>
+    <td>{{ log.old_qty }} {{ stock.unit }}</td>
+    <td class="fw-bold">{{ log.new_qty }} {{ stock.unit }}</td>
+    <td><span class="badge {% if log.delta >= 0 %}bg-success{% else %}bg-danger{% endif %}">{% if log.delta >= 0 %}+{% endif %}{{ log.delta }} {{ stock.unit }}</span></td>
+  </tr>
+  {% empty %}<tr><td colspan="4" class="text-center text-muted py-4">Aucune variation enregistree.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div></div>{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Tables{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+  <h3 class="mb-0"><i class="bi bi-grid-3x3-gap"></i> Plan des Tables</h3>
+  <a href="{% url 'order_create' %}" class="btn btn-warning"><i class="bi bi-cart-plus"></i> Nouvelle Commande</a>
+</div>
+<div class="row row-cols-2 row-cols-md-4 g-3">
+  {% for table in tables %}
+  <div class="col">
+    <div class="card text-center shadow-sm" style="border-top:4px solid {% if table.status == 'available' %}#1E8449{% elif table.status == 'occupied' %}#E74C3C{% else %}#F39C12{% endif %};">
+      <div class="card-body py-3">
+        <div style="font-size:36px;">{% if table.status == 'available' %}🟢{% elif table.status == 'occupied' %}🔴{% else %}🟡{% endif %}</div>
+        <h5 class="fw-bold mt-1 mb-0">Table {{ table.number }}</h5>
+        <p class="text-muted small mb-1">{{ table.capacity }} pers.</p>
+        <span class="badge {% if table.status == 'available' %}bg-success{% elif table.status == 'occupied' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ table.get_status_display }}</span>
+      </div>
+    </div>
+  </div>
+  {% empty %}<div class="col-12 text-center text-muted py-4">Aucune table. <a href="/admin/restaurant/table/add/">Creer des tables</a></div>
+  {% endfor %}
+</div>{% endblock %}

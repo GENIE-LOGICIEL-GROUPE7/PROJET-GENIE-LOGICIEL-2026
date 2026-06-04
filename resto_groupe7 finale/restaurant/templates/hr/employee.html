@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Profil - {{ emp.user.username }}{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+  <h3 class="mb-0"><i class="bi bi-person-badge"></i> {{ emp.user.get_full_name|default:emp.user.username }}</h3>
+  <a href="{% url 'hr_dashboard' %}" class="btn btn-outline-light"><i class="bi bi-arrow-left"></i> RH</a>
+</div>
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold" style="background:#1A5276;color:white;"><i class="bi bi-person"></i> Informations</div>
+      <div class="card-body">
+        <table class="table table-sm">
+          <tr><td class="text-muted">Nom</td><td><strong>{{ emp.user.get_full_name|default:emp.user.username }}</strong></td></tr>
+          <tr><td class="text-muted">Telephone</td><td>{{ emp.phone|default:"—" }}</td></tr>
+          <tr><td class="text-muted">Departement</td><td><span class="badge bg-primary">{{ emp.get_department_display }}</span></td></tr>
+          <tr><td class="text-muted">Embauche</td><td>{{ emp.hire_date|date:"d/m/Y" }}</td></tr>
+          <tr><td class="text-muted">Salaire brut</td><td>{{ emp.salary|floatformat:0 }} FCFA</td></tr>
+          <tr><td class="text-muted">Salaire net</td><td class="text-success fw-bold">{{ report.net_salary|floatformat:0 }} FCFA</td></tr>
+          <tr><td class="text-muted">Commandes/mois</td><td class="fw-bold">{{ report.orders_served }}</td></tr>
+        </table>
+        <a href="{% url 'employee_edit' emp.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Modifier</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold" style="background:#1E8449;color:white;"><i class="bi bi-list-check"></i> Dernieres Commandes</div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead style="background:#F0F3F4;"><tr><th>#</th><th>Date</th><th>Total</th><th>Statut</th></tr></thead>
+          <tbody>
+          {% for o in orders %}<tr>
+            <td>#{{ o.id }}</td><td>{{ o.date|date:"d/m H:i" }}</td>
+            <td>{{ o.total_amount|floatformat:0 }} FCFA</td>
+            <td><span class="badge bg-secondary small">{{ o.get_status_display }}</span></td>
+          </tr>{% empty %}<tr><td colspan="4" class="text-center text-muted py-3">Aucune commande ce mois.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>{% endblock %}

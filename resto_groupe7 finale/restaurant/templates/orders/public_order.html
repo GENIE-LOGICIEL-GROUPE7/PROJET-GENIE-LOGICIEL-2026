@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Commander - Restaurant Groupe 7</title>
+<link href="/static/css/bootstrap.min.css" rel="stylesheet"
+      onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'">
+<link href="/static/css/bootstrap-icons.css" rel="stylesheet"
+      onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css'">
+<style>
+body{background:#F8F9FA;}
+.navbar-rms{background:#1A5276!important;}
+.cat-header{background:#1A5276;color:white;padding:8px 16px;border-radius:8px;margin:20px 0 12px;}
+.prod-row{border-radius:10px;background:#fff;padding:12px 16px;margin-bottom:8px;box-shadow:0 1px 6px rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:space-between;}
+.prod-img{width:55px;height:55px;object-fit:cover;border-radius:8px;margin-right:12px;}
+.prod-no-img{width:55px;height:55px;background:#F0F3F4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-right:12px;flex-shrink:0;}
+.qty-btn{width:32px;height:32px;border:2px solid #1A5276;background:white;color:#1A5276;border-radius:6px;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.qty-btn:hover{background:#1A5276;color:white;}
+.qty-display{min-width:36px;text-align:center;font-weight:700;font-size:18px;}
+.sticky-bottom-card{position:sticky;bottom:16px;z-index:100;}
+.order-type-btn{border:2px solid #dee2e6;border-radius:10px;padding:12px;cursor:pointer;transition:all .2s;text-align:center;}
+.order-type-btn:hover,.order-type-btn.selected{border-color:#1A5276;background:#EBF5FB;}
+.order-type-btn input{display:none;}
+</style>
+</head>
+<body>
+<nav class="navbar navbar-dark navbar-rms px-3 py-2">
+  <a class="navbar-brand fw-bold" href="/"><i class="bi bi-shop"></i> Restaurant Groupe 7</a>
+  <a href="/menu/" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left"></i> Retour Menu</a>
+</nav>
+
+<div class="container py-3" style="max-width:800px;">
+  <h3 class="fw-bold mb-1" style="color:#1A5276;"><i class="bi bi-cart-plus"></i> Passer une Commande</h3>
+  <p class="text-muted small mb-3">Selectionnez vos plats, choisissez le type et validez.</p>
+
+  {% if messages %}{% for msg in messages %}
+  <div class="alert alert-danger alert-dismissible">{{ msg }}<button class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <form method="post" id="publicForm">{% csrf_token %}
+
+    <!-- Type de commande -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold" style="background:#1A5276;color:white;"><i class="bi bi-info-circle"></i> Type de commande</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-4">
+            <label class="order-type-btn w-100 selected" id="lbl_onsite">
+              <input type="radio" name="order_type" value="onsite" checked onchange="selectType(this)">
+              <div style="font-size:28px;">🍽️</div>
+              <div class="fw-semibold small">Sur place</div>
+            </label>
+          </div>
+          <div class="col-4">
+            <label class="order-type-btn w-100" id="lbl_takeaway">
+              <input type="radio" name="order_type" value="takeaway" onchange="selectType(this)">
+              <div style="font-size:28px;">📦</div>
+              <div class="fw-semibold small">A emporter</div>
+            </label>
+          </div>
+          <div class="col-4">
+            <label class="order-type-btn w-100" id="lbl_delivery">
+              <input type="radio" name="order_type" value="delivery" onchange="selectType(this)">
+              <div style="font-size:28px;">🚚</div>
+              <div class="fw-semibold small">Livraison</div>
+            </label>
+          </div>
+        </div>
+        <div class="mt-3">
+          <label class="form-label fw-semibold small">Notes / Instructions speciales (optionnel)</label>
+          <textarea name="notes" class="form-control" rows="2" placeholder="Allergies, table numero, adresse livraison..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Liste des plats par categorie -->
+    {% for category in categories %}
+    <div class="cat-header"><i class="bi bi-tag"></i> {{ category.label }}</div>
+    {% for product in category.products.all %}{% if product.is_available %}
+    <div class="prod-row">
+      <div class="d-flex align-items-center flex-grow-1">
+        {% if product.image %}
+        <img src="{{ product.image.url }}" class="prod-img" alt="{{ product.name }}">
+        {% else %}
+        <div class="prod-no-img"><i class="bi bi-egg-fried text-muted"></i></div>
+        {% endif %}
+        <div>
+          <div class="fw-bold">{{ product.name }}</div>
+          {% if product.description %}<div class="text-muted small">{{ product.description }}</div>{% endif %}
+          <div class="fw-bold mt-1" style="color:#1A5276;">{{ product.price|floatformat:0 }} FCFA</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2 ms-3">
+        <input type="hidden" name="product_id" value="{{ product.pk }}" id="pid_{{ product.pk }}" disabled>
+        <button type="button" class="qty-btn" onclick="changeQty('{{ product.pk }}',-1)">-</button>
+        <span class="qty-display" id="qty_{{ product.pk }}">0</span>
+        <button type="button" class="qty-btn" onclick="changeQty('{{ product.pk }}',1)">+</button>
+        <input type="hidden" name="quantity" value="0" id="qi_{{ product.pk }}">
+      </div>
+    </div>
+    {% endif %}{% endfor %}
+    {% empty %}
+    <p class="text-muted text-center py-4">Aucun plat disponible.</p>
+    {% endfor %}
+
+    <!-- Recapitulatif sticky -->
+    <div class="sticky-bottom-card mt-4">
+      <div class="card shadow-lg border-0" style="border-top:4px solid #1A5276!important;">
+        <div class="card-body py-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div id="recap_text" class="text-muted small">Aucun plat selectionne</div>
+            <div class="fw-bold fs-5" style="color:#1A5276;" id="total_display"></div>
+          </div>
+          <button type="submit" id="submitBtn" class="btn w-100 mt-2 fw-bold text-white py-2" 
+                  style="background:#1A5276;border-radius:10px;font-size:1.1rem;" disabled>
+            <i class="bi bi-check-circle"></i> Valider ma Commande
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<script src="/static/js/bootstrap.bundle.min.js"
+        onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js'"></script>
+<script>
+var prices = {};
+var names  = {};
+{% for category in categories %}{% for p in category.products.all %}{% if p.is_available %}
+prices["{{ p.pk }}"] = {{ p.price }};
+names["{{ p.pk }}"]  = "{{ p.name }}";
+{% endif %}{% endfor %}{% endfor %}
+
+// Pre-selectionner un produit si venu depuis le menu
+var preselect = new URLSearchParams(window.location.search).get('product');
+if (preselect && prices[preselect] !== undefined) {
+  changeQty(preselect, 1);
+}
+
+function changeQty(pid, d) {
+  var el  = document.getElementById('qty_'+pid);
+  var qi  = document.getElementById('qi_'+pid);
+  var pi  = document.getElementById('pid_'+pid);
+  var q   = parseInt(el.textContent||'0') + d;
+  if (q < 0) q = 0;
+  el.textContent = q;
+  qi.value = q;
+  pi.disabled = (q === 0);
+  el.style.color = q > 0 ? '#1A5276' : '#333';
+  updateRecap();
+}
+
+function updateRecap() {
+  var items=[], total=0;
+  document.querySelectorAll('[id^="qi_"]').forEach(function(qi){
+    var q=parseInt(qi.value||0);
+    if(q>0){
+      var pid=qi.id.replace('qi_','');
+      total+=q*prices[pid];
+      items.push(names[pid]+' x'+q);
+    }
+  });
+  var btn=document.getElementById('submitBtn');
+  var rt=document.getElementById('recap_text');
+  var td=document.getElementById('total_display');
+  if(items.length>0){
+    rt.innerHTML='<span class="text-dark fw-semibold">'+items.join(' | ')+'</span>';
+    td.textContent=total.toLocaleString()+' FCFA';
+    btn.disabled=false;
+    btn.style.opacity='1';
+  } else {
+    rt.textContent='Aucun plat selectionne';
+    td.textContent='';
+    btn.disabled=true;
+    btn.style.opacity='0.5';
+  }
+}
+
+function selectType(radio){
+  ['onsite','takeaway','delivery'].forEach(function(t){
+    var el=document.getElementById('lbl_'+t);
+    if(el) el.classList.remove('selected');
+  });
+  var lbl=document.getElementById('lbl_'+radio.value);
+  if(lbl) lbl.classList.add('selected');
+}
+</script>
+</body>
+</html>

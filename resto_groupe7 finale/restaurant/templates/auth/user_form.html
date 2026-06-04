@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Creer Utilisateur{% endblock %}
+{% block content %}
+<div class="page-header"><h3 class="mb-0"><i class="bi bi-person-plus"></i> Creer un Utilisateur</h3></div>
+<div class="card shadow-sm" style="max-width:600px;"><div class="card-body">
+<form method="post">{% csrf_token %}
+  <div class="row g-3">
+    <div class="col-md-6"><label class="form-label fw-semibold">Nom d'utilisateur *</label>{{ form.username }}</div>
+    <div class="col-md-6"><label class="form-label fw-semibold">Email</label>{{ form.email }}</div>
+    <div class="col-md-6"><label class="form-label fw-semibold">Prenom</label>{{ form.first_name }}</div>
+    <div class="col-md-6"><label class="form-label fw-semibold">Nom</label>{{ form.last_name }}</div>
+    <div class="col-md-6"><label class="form-label fw-semibold">Mot de passe *</label>{{ form.password }}</div>
+    <div class="col-md-6"><label class="form-label fw-semibold">Confirmer *</label>{{ form.password2 }}</div>
+    <div class="col-12"><label class="form-label fw-semibold">Role *</label>{{ form.role }}</div>
+  </div>
+  {% if form.errors %}<div class="alert alert-danger mt-3">{{ form.errors }}</div>{% endif %}
+  <div class="d-flex gap-2 mt-4">
+    <button type="submit" class="btn btn-navy text-white"><i class="bi bi-check-circle"></i> Creer</button>
+    <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">Annuler</a>
+  </div>
+</form>
+</div></div>{% endblock %}

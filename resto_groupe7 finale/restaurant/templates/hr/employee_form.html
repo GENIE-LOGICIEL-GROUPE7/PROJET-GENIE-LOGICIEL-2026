@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Modifier Employe{% endblock %}
+{% block content %}
+<div class="page-header"><h3 class="mb-0"><i class="bi bi-pencil"></i> Modifier — {{ emp.user.username }}</h3></div>
+<div class="card shadow-sm" style="max-width:440px;"><div class="card-body">
+<form method="post">{% csrf_token %}
+  <div class="mb-3"><label class="form-label fw-semibold">Telephone</label>{{ form.phone }}</div>
+  <div class="mb-3"><label class="form-label fw-semibold">Salaire (FCFA)</label>{{ form.salary }}</div>
+  <div class="mb-3"><label class="form-label fw-semibold">Departement</label>{{ form.department }}</div>
+  {% if form.errors %}<div class="alert alert-danger">{{ form.errors }}</div>{% endif %}
+  <div class="d-flex gap-2 mt-3">
+    <button type="submit" class="btn btn-navy text-white"><i class="bi bi-check-circle"></i> Enregistrer</button>
+    <a href="{% url 'employee_detail' emp.pk %}" class="btn btn-outline-secondary">Annuler</a>
+  </div>
+</form>
+</div></div>{% endblock %}

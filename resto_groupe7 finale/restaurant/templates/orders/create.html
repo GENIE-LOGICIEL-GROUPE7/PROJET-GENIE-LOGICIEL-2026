@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Nouvelle Commande{% endblock %}
+{% block content %}
+<div class="page-header"><h3 class="mb-0"><i class="bi bi-cart-plus"></i> Nouvelle Commande</h3></div>
+<form method="post" id="orderForm">{% csrf_token %}
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold" style="background:#1A5276;color:white;"><i class="bi bi-info-circle"></i> Informations</div>
+      <div class="card-body">
+        <label class="form-label fw-semibold">Type de commande</label>
+        <select name="order_type" class="form-select mb-3">
+          <option value="onsite">Sur place</option>
+          <option value="takeaway">A emporter</option>
+          <option value="delivery">Livraison</option>
+        </select>
+        <label class="form-label fw-semibold">Table (optionnel)</label>
+        <select name="table_id" class="form-select mb-3">
+          <option value="">-- Aucune --</option>
+          {% for table in tables %}
+          <option value="{{ table.pk }}">Table {{ table.number }} ({{ table.capacity }} pers.)</option>
+          {% endfor %}
+        </select>
+        <label class="form-label fw-semibold">Notes</label>
+        <textarea name="notes" class="form-control" rows="2" placeholder="Allergies, preferences..."></textarea>
+      </div>
+    </div>
+    <div class="card mt-3 shadow-sm">
+      <div class="card-header fw-bold" style="background:#1E8449;color:white;"><i class="bi bi-receipt"></i> Recapitulatif</div>
+      <div class="card-body" id="recap"><p class="text-muted text-center small">Aucun produit selectionne</p></div>
+      <div class="card-footer">
+        <button type="submit" class="btn w-100 fw-bold text-white" style="background:#1A5276;">
+          <i class="bi bi-check-circle"></i> Valider la Commande
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold" style="background:#1A5276;color:white;"><i class="bi bi-grid"></i> Selectionner les Plats</div>
+      <div class="card-body" style="max-height:580px;overflow-y:auto;">
+        {% for product in products %}
+        <div class="d-flex align-items-center justify-content-between border-bottom py-2">
+          <div class="d-flex align-items-center gap-3">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" style="height:42px;width:42px;object-fit:cover;border-radius:6px;">
+            {% else %}
+            <div style="height:42px;width:42px;background:#F0F3F4;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+              <i class="bi bi-egg-fried text-muted"></i>
+            </div>
+            {% endif %}
+            <div>
+              <div class="fw-semibold">{{ product.name }}</div>
+              <div class="text-primary fw-bold small">{{ product.price|floatformat:0 }} FCFA</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <input type="hidden" name="product_id" value="{{ product.pk }}" id="pid_{{ product.pk }}" disabled>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="changeQty('{{ product.pk }}',-1)">-</button>
+            <span id="qty_{{ product.pk }}" class="fw-bold" style="min-width:28px;text-align:center;">0</span>
+            <button type="button" class="btn btn-sm btn-outline-success" onclick="changeQty('{{ product.pk }}',1)">+</button>
+            <input type="hidden" name="quantity" value="0" id="qi_{{ product.pk }}">
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-muted text-center py-4">
+          Aucun produit disponible.
+          <a href="{% url 'product_create' %}">Ajouter des produits</a>
+        </p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+// Construction des dictionnaires prix/noms sans {{% qui cause l'erreur Django
+var prices = {};
+var names = {};
+{% for p in products %}
+prices["{{ p.pk }}"] = {{ p.price }};
+names["{{ p.pk }}"] = "{{ p.name }}";
+{% endfor %}
+
+function changeQty(pid, d) {
+  var el  = document.getElementById('qty_' + pid);
+  var qi  = document.getElementById('qi_' + pid);
+  var pi  = document.getElementById('pid_' + pid);
+  var q   = parseInt(el.textContent) + d;
+  if (q < 0) q = 0;
+  el.textContent = q;
+  qi.value = q;
+  pi.disabled = (q === 0);
+  updateRecap();
+}
+
+function updateRecap() {
+  var html = '';
+  var total = 0;
+  var inputs = document.querySelectorAll('[id^="qi_"]');
+  inputs.forEach(function(qi) {
+    var q = parseInt(qi.value);
+    if (q > 0) {
+      var pid = qi.id.replace('qi_', '');
+      var sub = q * prices[pid];
+      total += sub;
+      html += '<div class="d-flex justify-content-between small py-1"><span>' + names[pid] + ' x' + q + '</span><span class="fw-bold">' + sub.toLocaleString() + ' FCFA</span></div>';
+    }
+  });
+  var r = document.getElementById('recap');
+  if (html) {
+    r.innerHTML = html + '<hr class="my-1"><div class="d-flex justify-content-between fw-bold"><span>TOTAL</span><span style="color:#1A5276;">' + total.toLocaleString() + ' FCFA</span></div>';
+  } else {
+    r.innerHTML = '<p class="text-muted text-center small">Aucun produit selectionne</p>';
+  }
+}
+</script>
+{% endblock %}

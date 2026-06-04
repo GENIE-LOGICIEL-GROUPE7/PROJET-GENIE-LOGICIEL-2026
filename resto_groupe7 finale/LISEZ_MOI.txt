@@ -1,0 +1,57 @@
+=================================================================
+   RMS — RESTAURANT MANAGEMENT SYSTEM — GROUPE 7 — GTEL 3046
+=================================================================
+
+ETAPE 1 — Copier les fichiers dans votre projet
+  Extraire ce ZIP, puis copier :
+  - resto_groupe7/settings.py  →  dans votre dossier resto_groupe7/
+  - resto_groupe7/urls.py      →  dans votre dossier resto_groupe7/
+  - restaurant/                →  remplace votre dossier restaurant/
+
+ETAPE 2 — Changer le mot de passe MySQL
+  Ouvrir:  resto_groupe7/settings.py
+  Ligne:   'PASSWORD': 'VOTRE_MOT_DE_PASSE_MYSQL'
+  Mettre:  votre vrai mot de passe MySQL root
+
+ETAPE 3 — Creer la base de donnees (MySQL Workbench)
+  CREATE DATABASE Restaurant CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+ETAPE 4 — Dans Anaconda Prompt (resto_env7 active)
+  cd C:\Users\ELITEBOOK MT45\Desktop\resto_groupe7
+  python manage.py makemigrations restaurant
+  python manage.py migrate
+  python manage.py createsuperuser
+    Username: TONLEU_RAMSES
+  python manage.py runserver
+
+ETAPE 5 — Ouvrir dans le navigateur
+  http://127.0.0.1:8000/       → Page d'accueil
+  http://127.0.0.1:8000/admin/ → Panneau Admin
+
+DONNEES INITIALES A CREER (via /admin/)
+  1. Roles: Administrator, Director, Head Chef, Cook, Server, Stock Manager
+  2. Categories: Entrees, Plats, Boissons, Desserts
+  3. Produits avec prix et description
+  4. Tables (numero 1 a 10, capacite 4)
+  5. Articles de Stock
+
+MEMBRES DU GROUPE
+  TONLEU FEUDJIO RAMSES JOEL   22P474  30%
+  NGUEKE TSOBENG FRED PAVEL    22P535  20%
+  KENFACK NGEUFACK RICHECARD   23P258  18%
+  EYEBE SOBGOUM VALERY         22P424  17%
+  TIA TCHOFFO BRANDON          23P570  15%
+  Supervision: Mr. MBIETIEU Amos
+
+URLS DISPONIBLES
+  /              Page d'accueil
+  /menu/         Carte des plats (public)
+  /login/        Connexion
+  /dashboard/    Tableau de bord
+  /orders/create/ Nouvelle commande
+  /kitchen/      Interface cuisine
+  /stock/        Gestion stock
+  /products/     Catalogue produits
+  /hr/           Ressources humaines
+  /admin/        Admin Django
+=================================================================

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Modifier Stock{% endblock %}
+{% block content %}
+<div class="page-header"><h3 class="mb-0"><i class="bi bi-pencil"></i> Stock — {{ stock.item_name }}</h3></div>
+<div class="card shadow-sm" style="max-width:430px;"><div class="card-body">
+  <div class="mb-3 p-3 rounded" style="background:#EBF5FB;">
+    <div class="d-flex justify-content-between"><span class="text-muted">Quantite actuelle</span>
+      <span class="fw-bold fs-5 {% if stock.check_threshold %}text-danger{% else %}text-success{% endif %}">{{ stock.quantity }} {{ stock.unit }}</span></div>
+    <div class="d-flex justify-content-between mt-1"><span class="text-muted">Seuil critique</span><span class="text-warning fw-bold">{{ stock.threshold }} {{ stock.unit }}</span></div>
+  </div>
+  <form method="post">{% csrf_token %}
+    <div class="mb-3"><label class="form-label fw-semibold">Nouvelle quantite *</label>{{ form.quantity }}</div>
+    {% if form.errors %}<div class="alert alert-danger">{{ form.errors }}</div>{% endif %}
+    <div class="d-flex gap-2 mt-3">
+      <button type="submit" class="btn btn-navy text-white"><i class="bi bi-check-circle"></i> Mettre a jour</button>
+      <a href="{% url 'stock_list' %}" class="btn btn-outline-secondary">Annuler</a>
+    </div>
+  </form>
+</div></div>{% endblock %}
